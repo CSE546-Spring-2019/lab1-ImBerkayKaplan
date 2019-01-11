@@ -35,7 +35,7 @@ int* countstring(FILE *input, unsigned char *searchString){
         // Go through the chunk of 100 bytes char array
         for(i = 0; i<strlen(buffer); i++){
 
-	// If the first element of the searchString matches with the current buffer element or the keepgoing is non-zero, go into the if statement
+	    // If the first element of the searchString matches with the current buffer element or the keepgoing is non-zero, go into the if statement
             if((buffer[i] == (searchString[0]&0xff)) || (keepgoing && i == 0)){
 		
 	        // Go through the searchString
