@@ -33,18 +33,18 @@ int* countstring(FILE *input, unsigned char *searchString){
         result[0] = size + result[0];
       
         // Go through the chunk of 100 bytes char array
-        for(i = 0; i<strlen(buffer); i++){
+        for(i = 0; i<strlen((char*)buffer); i++){
 
 	    // If the first element of the searchString matches with the current buffer element or the keepgoing is non-zero, go into the if statement
             if((buffer[i] == (searchString[0]&0xff)) || (keepgoing && i == 0)){
 		
 	        // Go through the searchString
-                for(j = 0; j < strlen(searchString) && (j+i) < strlen(buffer); j++){
+                for(j = 0; j < strlen((char*)searchString) && (j+i) < strlen((char*)buffer); j++){
 
 	            // If the characters of the text and the searchString matches, increment keepgoing or break
 	            if(buffer[i+j] == (searchString[keepgoing]&0xff)){
 		        keepgoing++;
-		        if(keepgoing == strlen(searchString)){
+		        if(keepgoing == strlen((char*)searchString)){
 		            result[1]++;
 		            keepgoing = 0;
 		            break;
@@ -86,6 +86,7 @@ int main(int argc, char *argv[]){
 
     // Returns an array sized 2. First element is the size of the file, and second is how many times the string occurs in the text
     int *result = countstring(input, searchString);
+    int matches = result[1];
 
     // Write the size of the file to the output file and the screen
     char temp[BUFFERSIZE] = "count ";
@@ -95,7 +96,7 @@ int main(int argc, char *argv[]){
 
     // Write the number of matches to the output file and the screen
     memset(temp, 0, sizeof(temp));
-    sprintf(temp, "Number of matches = %d\n", result[1]);
+    sprintf(temp, "Number of matches = %d\n", matches);
     fwrite(temp, 1, sizeof(temp), output);
     printf("%s", temp);
 
