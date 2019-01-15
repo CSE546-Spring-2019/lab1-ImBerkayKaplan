@@ -79,6 +79,7 @@ int main(int argc, char *argv[]){
     // Open the files with proper permission and check if it is successfully opened
     FILE *input = openfile(argv[1],"rb"), *output = openfile(argv[3], "w");
 
+    // Get the file size
     fseek(input, 0L, SEEK_END);
     long fileSize = ftell(input);
     fseek(input, 0L, SEEK_SET);
