@@ -15,22 +15,17 @@ FILE* openfile(char *name, char *permission){
 }
 
 // Count the number of strings in the chunk as well as the total size of the file. Returns a sized-two array that the first element is the total size of the file while the second element is how many times the searchString appears in the file
-int* countstring(FILE *input, unsigned char *searchString){
+int countstring(FILE *input, unsigned char *searchString){
 
     // Initialize the counters of for loop, the result array to be returned, and initialize both elements of the result to 0
     size_t size = 0;
-    int i = 0, j = 0, *result, keepgoing = 0;
-    result[0] = 0;
-    result[1] = 0;
+    int i = 0, j = 0, result = 0, keepgoing = 0;
 
     // Read input file by 100 bytes each time
     unsigned char buffer[BUFFERSIZE];
 
     // Keep reading the input file until all is read
     while ((size = fread(buffer, 1, sizeof(buffer), input)) > 0){
-
-        // Record the totalSize of the input file
-        result[0] = size + result[0];
       
         // Go through the chunk of 100 bytes char array
         for(i = 0; i<strlen((char*)buffer); i++){
@@ -45,7 +40,7 @@ int* countstring(FILE *input, unsigned char *searchString){
 	            if(buffer[i+j] == (searchString[keepgoing]&0xff)){
 		        keepgoing++;
 		        if(keepgoing == strlen((char*)searchString)){
-		            result[1]++;
+		            result++;
 		            keepgoing = 0;
 		            break;
 		        }
@@ -84,19 +79,22 @@ int main(int argc, char *argv[]){
     // Open the files with proper permission and check if it is successfully opened
     FILE *input = openfile(argv[1],"rb"), *output = openfile(argv[3], "w");
 
+    fseek(input, 0L, SEEK_END);
+    long fileSize = ftell(input);
+    fseek(input, 0L, SEEK_SET);
+	
     // Returns an array sized 2. First element is the size of the file, and second is how many times the string occurs in the text
-    int *result = countstring(input, searchString);
-    int matches = result[1];
+    int result = countstring(input, searchString);
 
     // Write the size of the file to the output file and the screen
     char temp[BUFFERSIZE] = "count ";
-    sprintf(temp, "Size of the file is %d\n", result[0]);
+    sprintf(temp, "Size of the file is %ld\n", fileSize);
     fwrite(temp, 1, sizeof(temp), output);
     printf("%s", temp);
 
     // Write the number of matches to the output file and the screen
     memset(temp, 0, sizeof(temp));
-    sprintf(temp, "Number of matches = %d\n", matches);
+    sprintf(temp, "Number of matches = %d\n", result);
     fwrite(temp, 1, sizeof(temp), output);
     printf("%s", temp);
 
