@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#define BUFFERSIZE 100
 
 // Opens a file and does the necessary error checking. Returns the file pointer or prints an error statement if file could not be opened.
 FILE* openfile(char *name, char *permission){
@@ -15,45 +14,39 @@ FILE* openfile(char *name, char *permission){
 }
 
 // Count the number of strings in the chunk as well as the total size of the file. Returns a sized-two array that the first element is the total size of the file while the second element is how many times the searchString appears in the file
-int countstring(FILE *input, unsigned char *searchString){
+int countstring(FILE *input, unsigned char *searchString, long fileSize){
 
     // Initialize the counters of for loop, the result array to be returned, and initialize both elements of the result to 0
-    size_t size = 0;
-    int i = 0, j = 0, result = 0, keepgoing = 0;
+    int i = 0, result = 0, searchSize = strlen((char*)searchString), size = 0;
+    long position = 0;
 
     // Read input file by 100 bytes each time
-    unsigned char buffer[BUFFERSIZE];
+    unsigned char buffer[1];
 
     // Keep reading the input file until all is read
-    while ((size = fread(buffer, 1, sizeof(buffer), input)) > 0){
-      
-        // Go through the chunk of 100 bytes char array
-        for(i = 0; i<strlen((char*)buffer); i++){
+    while ((size = fread(buffer, 1, 1, input)) > 0){
 
-	    // If the first element of the searchString matches with the current buffer element or the keepgoing is non-zero, go into the if statement
-            if((buffer[i] == (searchString[0]&0xff)) || (keepgoing && i == 0)){
-		
-	        // Go through the searchString
-                for(j = 0; j < strlen((char*)searchString) && (j+i) < strlen((char*)buffer); j++){
-
-	            // If the characters of the text and the searchString matches, increment keepgoing or break
-	            if(buffer[i+j] == (searchString[keepgoing]&0xff)){
-		        keepgoing++;
-		        if(keepgoing == strlen((char*)searchString)){
-		            result++;
-		            keepgoing = 0;
-		            break;
-		        }
-	            }else{
-		        keepgoing = 0;
-		        break;
-	            }
-                }
+	// If the first element of the searchString matches with the current buffer element, go into the if statement
+        if(buffer[0] == (searchString[0]&0xff)){
+        	
+	    // Go through the searchString
+            for(i = 0; i < searchSize && buffer[0] == (searchString[i]&0xff); i++){
+		fread(buffer, 1, 1, input);
             }
-        }
+            
+            // Increment result if the searchString is there
+	    if(i == searchSize){
+		result = result + 1;
+	    }
+			
+	    // Go back to one plus the initial position
+	    fseek(input,position+1,SEEK_SET);
+	}   
 
     // Clear the buffer to get another chunk correctly
     memset(buffer, 0, strlen(buffer));
+    position++;
+    
     }
     return result;
 }
@@ -80,16 +73,16 @@ int main(int argc, char *argv[]){
     FILE *input = openfile(argv[1],"rb"), *output = openfile(argv[3], "w");
 
     // Get the file size
-    fseek(input, 0L, SEEK_END);
-    long fileSize = ftell(input);
-    fseek(input, 0L, SEEK_SET);
-	
+    fseek(input, 0, SEEK_END);
+    long size = ftell(input);
+    rewind(input);
+
     // Returns an array sized 2. First element is the size of the file, and second is how many times the string occurs in the text
-    int result = countstring(input, searchString);
+    int result = countstring(input, searchString, size);
 
     // Write the size of the file to the output file and the screen
-    char temp[BUFFERSIZE] = "count ";
-    sprintf(temp, "Size of the file is %ld\n", fileSize);
+    char temp[100] = "count ";
+    sprintf(temp, "Size of the file is %ld\n", size);
     fwrite(temp, 1, sizeof(temp), output);
     printf("%s", temp);
 
